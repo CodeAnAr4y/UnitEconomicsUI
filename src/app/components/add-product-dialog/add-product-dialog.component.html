@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>Добавить товар</h2>  
+<form [formGroup]="productForm" (ngSubmit)="onSubmit()">  
+  <mat-dialog-content>  
+    <!-- Переключатель маркетплейсов -->  
+    <div class="row">  
+      <div class="col-2 input-label">Площадка</div>  
+      <div class="col-10">  
+        <mat-button-toggle-group formControlName="marketplace" aria-label="Выберите площадку" appearance="legacy">  
+          <mat-button-toggle value="OZON">OZON</mat-button-toggle>  
+          <mat-button-toggle value="Wildberries">Wildberries</mat-button-toggle>  
+        </mat-button-toggle-group>  
+      </div>  
+    </div>  
+
+    <!-- Поля для OZON -->  
+    <div *ngIf="productForm.get('marketplace')?.value === 'OZON'">  
+      <div class="row" *ngFor="let field of ozonColumns">  
+        <div class="col-2 input-label">{{ field.header }}</div>  
+        <div class="col-10">  
+          <input class="input-field" type="text" [formControlName]="field.key" matInput />  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- Поля для Wildberries -->  
+    <div *ngIf="productForm.get('marketplace')?.value === 'Wildberries'">  
+      <div class="row" *ngFor="let field of wildberriesColumns">  
+        <div class="col-2 input-label">{{ field.header }}</div>  
+        <div class="col-10">  
+          <input class="input-field" type="text" [formControlName]="field.key" matInput />  
+        </div>  
+      </div>  
+    </div>  
+
+  </mat-dialog-content>  
+  <mat-dialog-actions align="end">  
+    <button mat-button type="button" (click)="onCancel()">Отмена</button>  
+    <button mat-button color="primary" type="submit">Добавить</button>  
+  </mat-dialog-actions>  
+</form>

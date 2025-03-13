@@ -1,1 +1,17 @@
-/* You can add global styles to this file, and also import other style files */
+// Используйте @use для импорта Bootstrap  
+@use 'bootstrap/scss/bootstrap' as *; // Импортируем все стили Bootstrap  
+@import url('https://fonts.googleapis.com/css2?family=Inter:slnt,wght@-10..0,100..900&display=swap');  
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+
+* {  
+    font-family: "Inter", sans-serif;  
+}  
+
+:root {  
+    --blue-btn: rgba(4, 108, 231, 1);  
+}
+
+.custom-dialog-container {  
+    border-radius: 16px !important;  
+    overflow: hidden;  
+  }  
