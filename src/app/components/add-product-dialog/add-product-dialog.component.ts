@@ -41,11 +41,11 @@ export class AddProductDialogComponent {
 
     // Добавляем контролы для всех полей OZON и Wildberries без начальных валидаторов  
     this.ozonColumns.forEach((col: any) => {  
-      this.productForm.addControl(col.key, this.fb.control(''));  
+      this.productForm.addControl(col.key, this.fb.control('test'));  
     });  
     this.wildberriesColumns.forEach((col: any) => {  
       if (!this.productForm.contains(col.key)) {  
-        this.productForm.addControl(col.key, this.fb.control(''));  
+        this.productForm.addControl(col.key, this.fb.control('test'));  
       }  
     });  
 
