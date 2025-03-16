@@ -12,6 +12,21 @@
       </div>  
     </div>  
 
+    <!-- Выпадающий список для выбора продавца -->  
+    <div class="row">  
+      <div class="col-2 input-label">Продавец</div>  
+      <div class="col-10">  
+        <mat-form-field appearance="fill" style="width: 100%;">  
+          <mat-label>Выберите продавца</mat-label>  
+          <mat-select formControlName="seller">  
+            <mat-option *ngFor="let seller of sellers" [value]="seller">  
+              {{ seller.name }}  
+            </mat-option>  
+          </mat-select>  
+        </mat-form-field>  
+      </div>  
+    </div>  
+
     <!-- Поля для OZON -->  
     <div *ngIf="productForm.get('marketplace')?.value === 'OZON'">  
       <div class="row" *ngFor="let field of ozonColumns">  
@@ -31,7 +46,6 @@
         </div>  
       </div>  
     </div>  
-
   </mat-dialog-content>  
   <mat-dialog-actions align="end">  
     <button mat-button type="button" (click)="onCancel()">Отмена</button>  

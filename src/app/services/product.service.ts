@@ -3,11 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';  
 import { environment } from '../../environments/environment';
 
-// Определим интерфейс для товара для типизации данных  
 export interface Product {  
-  id?: number; // будет возвращено сервером (если есть)  
+  id?: number;
   marketplace: string;  
   details: { [key: string]: any };  
+  seller?: string;
+  manager?: string;
   created_at?: string; // время создания может быть строкой (ISO формат)  
 }  
 
@@ -26,13 +27,13 @@ export class ProductService {
    * @param product Объект товара, который содержит поля: marketplace и details.  
    */  
   addProduct(product: Product): Observable<Product> {  
-    return this.http.post<Product>(`${this.productsUrl}/add/`, product, {withCredentials: true});  
+    return this.http.post<Product>(`${this.productsUrl}/add/`, product);  
   }  
 
   /**  
    * Получение списка всех товаров.  
    */  
   getProducts(): Observable<Product[]> {  
-    return this.http.get<Product[]>(`${this.productsUrl}/all/`, {withCredentials: true});  
+    return this.http.get<Product[]>(`${this.productsUrl}/all/`);  
   }  
 }

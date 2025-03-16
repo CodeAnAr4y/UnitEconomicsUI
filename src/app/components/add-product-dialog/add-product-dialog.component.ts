@@ -5,6 +5,9 @@ import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';  
 import { MatButtonToggleModule } from '@angular/material/button-toggle';  
 import { MatInputModule } from '@angular/material/input';  
+import { MatSelectModule } from '@angular/material/select';  
+import { MatFormFieldModule } from '@angular/material/form-field';  
+import { Seller } from '../../services/seller.service';
 
 @Component({  
   selector: 'app-add-product-dialog',  
@@ -15,7 +18,9 @@ import { MatInputModule } from '@angular/material/input';
     MatDialogModule,  
     MatButtonModule,  
     MatButtonToggleModule,  
-    MatInputModule  
+    MatInputModule,
+    MatSelectModule,  
+    MatFormFieldModule,  
   ],  
   templateUrl: './add-product-dialog.component.html',  
   styleUrls: ['./add-product-dialog.component.scss']  
@@ -24,22 +29,25 @@ export class AddProductDialogComponent {
   productForm: FormGroup;  
   ozonColumns: any[];  
   wildberriesColumns: any[];  
+  sellers: Seller[];  
 
   constructor(  
     public dialogRef: MatDialogRef<AddProductDialogComponent>,  
     @Inject(MAT_DIALOG_DATA) public data: any,  
     private fb: FormBuilder  
   ) {  
-    // Инициализируем столбцы из переданных данных.  
+    // Инициализируем столбцы и список продавцов из переданных данных.  
     this.ozonColumns = data.ozonColumns;  
     this.wildberriesColumns = data.wildberriesColumns;  
+    this.sellers = data.sellers || [];  
 
-    // Создаем форму с контролом "marketplace"  
+    // Создаем форму с контролами "marketplace" и "seller"  
     this.productForm = this.fb.group({  
       marketplace: ['OZON', Validators.required],  
+      seller: ['', Validators.required]  
     });  
 
-    // Добавляем контролы для всех полей OZON и Wildberries без начальных валидаторов  
+    // Добавляем контролы для всех полей OZON и Wildberries с начальными значением "test"  
     this.ozonColumns.forEach((col: any) => {  
       this.productForm.addControl(col.key, this.fb.control('test'));  
     });  
@@ -52,7 +60,7 @@ export class AddProductDialogComponent {
     // Устанавливаем валидаторы для выбранного маркетплейса по умолчанию  
     this.setValidators('OZON');  
 
-    // При изменении маркетплейса обновляем валидаторы для соответствующих контаков  
+    // При изменении маркетплейса обновляем валидаторы для соответствующих контролов  
     this.productForm.get('marketplace')?.valueChanges.subscribe((value: string) => {  
       this.setValidators(value);  
     });  
@@ -86,6 +94,9 @@ export class AddProductDialogComponent {
     if (this.productForm.valid) {  
       const marketplace = this.productForm.get('marketplace')?.value;  
       let productData: any = { marketplace };  
+
+      // Добавляем значение для продавца из контрола seller  
+      productData.seller = this.productForm.get('seller')?.value;  
 
       const relevantColumns = marketplace === 'OZON' ? this.ozonColumns : this.wildberriesColumns;  
       relevantColumns.forEach((col: any) => {  

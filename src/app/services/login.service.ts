@@ -19,7 +19,7 @@ export class LoginService {
 
   // Метод для получения профиля пользователя  
   getUserProfile(): Observable<any> {  
-    return this.http.get<any>(this.profileUrl, { withCredentials: true });  
+    return this.http.get<any>(this.profileUrl);  
   }  
 
   // Метод для регистрации пользователя  
@@ -32,34 +32,14 @@ export class LoginService {
     return this.http.post<any>(this.loginUrl, {  
       username: username,  
       password: password,  
-    }, { withCredentials: true });
+    });
   }  
 
   // Метод для выхода пользователя  
   logout(): Observable<void> {  
-    const csrfToken = this.getCSRFToken();  
     return this.http.post<void>(  
       this.logoutUrl,  
-      {},  
-      {  
-        headers: {  
-          'X-CSRFToken': csrfToken || '',  
-        },  
-        withCredentials: true // Добавляем withCredentials для отправки куки  
-      }  
+      {}
     );  
-  }  
-
-  // Вспомогательный метод для получения CSRF токена из куки  
-  private getCSRFToken(): string | null {  
-    const name = 'csrftoken';  
-    const value = `; ${document.cookie}`;  
-    const parts = value.split(`; ${name}=`);  
-
-    if (parts.length > 1) {  
-      const tokenPart = parts[1].split(';')[0];  
-      return tokenPart || null;  
-    }  
-    return null;  
   }  
 }

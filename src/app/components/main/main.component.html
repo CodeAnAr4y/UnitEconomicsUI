@@ -1,87 +1,143 @@
-<section class="container mb-5">  
-  <!-- Форма фильтров -->  
-  <div class="filters-title">  
-    <div>Фильтры</div>  
-  </div>  
-  <form [formGroup]="filtersForm" (ngSubmit)="applyFilters()">  
-    <div class="row">  
-      <div class="col-2 input-label">НАЗВАНИЕ</div>  
-      <div class="col-10">  
-        <input class="input-field" type="text" formControlName="itemName" />  
-      </div>  
-    </div>  
-    <div class="row">  
-      <div class="col-2 input-label">КОЛИЧЕСТВО</div>  
-      <div class="col-10">  
-        <input class="input-field" type="text" formControlName="quantity" />  
-      </div>  
-    </div>  
-    <div class="row">  
-      <div class="col-2 input-label">СВОЙСТВО</div>  
-      <div class="col-10">  
-        <input class="input-field" type="text" formControlName="property" />  
-      </div>  
-    </div>  
-    <!-- Переключатель маркетплейсов -->  
-    <div class="row" style="align-items: center; margin: 1rem 0;">  
-      <div class="col-2 input-label">ПЛОЩАДКА</div>  
-      <div class="col-10">  
-        <mat-button-toggle-group   
-          formControlName="marketplace"   
-          aria-label="Выберите площадку"   
-          appearance="legacy"   
-          class="toggle-group">  
-          <mat-button-toggle value="OZON">OZON</mat-button-toggle>  
-          <mat-button-toggle value="Wildberries">Wildberries</mat-button-toggle>  
-        </mat-button-toggle-group>  
-      </div>  
-    </div>  
-    <button class="filter-btn" type="submit">Применить</button>  
-  </form>  
+<header>
+  <button class="btn" (click)="router.navigate([''])">
+    <img src="logo-sm.svg" alt="БО" />
+  </button>
+  <div class="d-flex search">
+    <div class="search-input">
+      <img src="search-icon.svg" alt="" />
+      <input [(ngModel)]="searchValue" type="text" />
+    </div>
+    <button (click)="search()" class="search-btn">Найти</button>
+  </div>
+  <button (click)="router.navigate(['account'])" class="btn user-btn">
+    <div class="user-icon">{{ user.username[0] }}</div>
+    <div>{{ user.username }}</div>
+  </button>
+</header>
 
-  <!-- Таблица для отображения товаров -->  
-  <div style="overflow-x: auto; margin-top: 2rem;">  
-    <!-- Таблица для товаров OZON -->  
-    <div *ngIf="filtersForm.value.marketplace === 'OZON'">  
-      <table class="my-table mb-3">  
-        <thead>  
-          <tr class="table-title">  
-            <th *ngFor="let col of ozonColumns">{{ col.header }}</th>  
-          </tr>  
-        </thead>  
-        <tbody>  
-          <ng-container *ngFor="let prod of products">  
-            <tr *ngIf="prod.marketplace === 'OZON'">  
-              <td *ngFor="let col of ozonColumns">  
-                <!-- Предполагается, что данные товара находятся в поле details -->  
-                {{ prod.details[col.key] }}  
-              </td>  
-            </tr>  
-          </ng-container>  
-        </tbody>  
-      </table>  
-    </div>  
+<section class="container mb-5">
+  <!-- Форма фильтров -->
+  <div class="filters-title">
+    <div>Фильтры</div>
+  </div>
+  <form [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
+    <!-- <div class="row">
+      <div class="col-2 input-label">АРТИКУЛ ПРОДАВЦА</div>
+      <div class="col-10">
+        <input class="input-field" type="text" formControlName="itemName" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-2 input-label">МАРЖА</div>
+      <div class="col-10">
+        <input class="input-field" type="text" formControlName="quantity" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-2 input-label">ЦЕНА РЕАЛИЗАЦИИ</div>
+      <div class="col-10">
+        <input class="input-field" type="text" formControlName="property" />
+      </div>
+    </div> -->
 
-    <!-- Таблица для товаров Wildberries -->  
-    <div *ngIf="filtersForm.value.marketplace === 'Wildberries'">  
-      <table class="my-table mb-3">  
-        <thead>  
-          <tr class="table-title">  
-            <th *ngFor="let col of wildberriesColumns">{{ col.header }}</th>  
-          </tr>  
-        </thead>  
-        <tbody>  
-          <ng-container *ngFor="let prod of products">  
-            <tr *ngIf="prod.marketplace === 'Wildberries'">  
-              <td *ngFor="let col of wildberriesColumns">  
-                {{ prod.details[col.key] }}  
-              </td>  
-            </tr>  
-          </ng-container>  
-        </tbody>  
-      </table>  
-    </div>  
-  </div>  
+    <!-- Фильтр по продавцу -->
+    <div class="row">
+      <div class="col-2 input-label">ПРОДАВЕЦ</div>
+      <div class="col-10">
+        <mat-form-field appearance="fill" style="width: 100%">
+          <mat-label>Выберите продавца</mat-label>
+          <mat-select formControlName="seller">
+            <mat-option *ngFor="let seller of sellers" [value]="seller">
+              {{ seller.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
 
-  <button class="filter-btn" (click)="openAddProductDialog()">Добавить товар</button>  
+    <div class="row">
+      <div class="col-2">
+      </div>
+      <div class="col-10">
+        <button
+        class="filter-btn"
+        style="background-color: white; color: black; border: 1px solid black"
+        (click)="openAddSellerDialog()"
+      >
+        Добавить продавца
+      </button>
+      </div>
+    </div>
+
+    <!-- Переключатель маркетплейсов -->
+    <div class="row" style="align-items: center; margin: 1rem 0">
+      <div class="col-2 input-label">ПЛОЩАДКА</div>
+      <div class="col-10">
+        <mat-button-toggle-group
+          formControlName="marketplace"
+          aria-label="Выберите площадку"
+          appearance="legacy"
+          class="toggle-group"
+        >
+          <mat-button-toggle value="OZON">OZON</mat-button-toggle>
+          <mat-button-toggle value="Wildberries">Wildberries</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+    </div>
+  </form>
+
+  <!-- Таблица для отображения товаров -->
+  <div style="overflow-x: auto; margin-top: 2rem">
+    <!-- Таблица для товаров OZON -->
+    <div *ngIf="filtersForm.value.marketplace === 'OZON'">
+      <table class="my-table mb-3">
+        <thead>
+          <tr class="table-title">
+            <th *ngFor="let col of ozonColumns">{{ col.header }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let prod of products">
+            <tr *ngIf="prod.marketplace === 'OZON'">
+              <td *ngFor="let col of ozonColumns">
+                <!-- Предполагается, что данные товара находятся в поле details -->
+                {{ prod.details[col.key] }}
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Таблица для товаров Wildberries -->
+    <div *ngIf="filtersForm.value.marketplace === 'Wildberries'">
+      <table class="my-table mb-3">
+        <thead>
+          <tr class="table-title">
+            <th *ngFor="let col of wildberriesColumns">{{ col.header }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let prod of products">
+            <tr *ngIf="prod.marketplace === 'Wildberries'">
+              <td *ngFor="let col of wildberriesColumns">
+                {{ prod.details[col.key] }}
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="add-btns">
+    <button
+      class="filter-btn"
+      style="margin-right: 16px"
+      (click)="openAddProductDialog()"
+    >
+      Добавить товар
+    </button>
+
+  </div>
 </section>
