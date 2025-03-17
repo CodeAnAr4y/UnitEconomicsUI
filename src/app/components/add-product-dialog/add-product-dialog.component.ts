@@ -29,7 +29,7 @@ export class AddProductDialogComponent {
   productForm: FormGroup;  
   ozonColumns: any[];  
   wildberriesColumns: any[];  
-  sellers: Seller[];  
+  seller: Seller;  
 
   constructor(  
     public dialogRef: MatDialogRef<AddProductDialogComponent>,  
@@ -39,12 +39,11 @@ export class AddProductDialogComponent {
     // Инициализируем столбцы и список продавцов из переданных данных.  
     this.ozonColumns = data.ozonColumns;  
     this.wildberriesColumns = data.wildberriesColumns;  
-    this.sellers = data.sellers || [];  
+    this.seller = data.seller || null;  
 
     // Создаем форму с контролами "marketplace" и "seller"  
     this.productForm = this.fb.group({  
       marketplace: ['OZON', Validators.required],  
-      seller: ['', Validators.required]  
     });  
 
     // Добавляем контролы для всех полей OZON и Wildberries с начальными значением "test"  
@@ -91,12 +90,11 @@ export class AddProductDialogComponent {
   }  
 
   onSubmit(): void {  
+    console.log(this.seller);
     if (this.productForm.valid) {  
       const marketplace = this.productForm.get('marketplace')?.value;  
       let productData: any = { marketplace };  
-
-      // Добавляем значение для продавца из контрола seller  
-      productData.seller = this.productForm.get('seller')?.value;  
+      productData.seller = this.seller.id;
 
       const relevantColumns = marketplace === 'OZON' ? this.ozonColumns : this.wildberriesColumns;  
       relevantColumns.forEach((col: any) => {  

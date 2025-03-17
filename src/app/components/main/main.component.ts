@@ -112,19 +112,13 @@ export class MainComponent implements OnInit {
 
   // Форма фильтров
   filtersForm = new FormGroup({
-    itemName: new FormControl('', Validators.required),
-    quantity: new FormControl('', Validators.required),
-    property: new FormControl('', Validators.required),
-    filterBy: new FormControl('', Validators.required),
     marketplace: new FormControl('OZON', Validators.required),
-    seller: new FormControl('', Validators.required),
+    seller: new FormControl<Seller | null>(null, Validators.required),
   });
 
   productForm: FormGroup = new FormGroup({
     marketplace: new FormControl('OZON', Validators.required),
   });
-
-  addProductWindow: boolean = false;
 
   constructor(
     public router: Router,
@@ -177,6 +171,11 @@ export class MainComponent implements OnInit {
     this.sellerService.getAllSellers().subscribe(
       (data) => {
         this.sellers = data;
+        if (this.sellers && this.sellers.length > 0) {  
+          this.filtersForm.patchValue({  
+            seller: this.sellers[0]  
+          });  
+        }  
       },
       (error) => {console.error(error)}
     )
@@ -197,7 +196,7 @@ export class MainComponent implements OnInit {
       data: {  
         ozonColumns: this.ozonColumns,  
         wildberriesColumns: this.wildberriesColumns,  
-        sellers: this.sellers,  
+        seller: this.filtersForm.value.seller,  
       },  
     });  
   

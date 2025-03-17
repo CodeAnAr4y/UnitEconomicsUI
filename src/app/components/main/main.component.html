@@ -98,7 +98,7 @@
         </thead>
         <tbody>
           <ng-container *ngFor="let prod of products">
-            <tr *ngIf="prod.marketplace === 'OZON'">
+            <tr *ngIf="prod.marketplace === 'OZON' && prod.seller === filtersForm.value.seller?.id">
               <td *ngFor="let col of ozonColumns">
                 <!-- Предполагается, что данные товара находятся в поле details -->
                 {{ prod.details[col.key] }}
@@ -119,7 +119,7 @@
         </thead>
         <tbody>
           <ng-container *ngFor="let prod of products">
-            <tr *ngIf="prod.marketplace === 'Wildberries'">
+            <tr *ngIf="prod.marketplace === 'Wildberries' && prod.seller === filtersForm.value.seller?.id">
               <td *ngFor="let col of wildberriesColumns">
                 {{ prod.details[col.key] }}
               </td>
