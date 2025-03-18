@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Добавить товар к продавцу {{seller.name}}</h2>  
+<h2 mat-dialog-title>Добавить товар к продавцу {{ seller.name }}</h2>  
 <form [formGroup]="productForm" (ngSubmit)="onSubmit()">  
   <mat-dialog-content>  
     <!-- Переключатель маркетплейсов -->  
@@ -12,22 +12,40 @@
       </div>  
     </div>  
 
-    <!-- Поля для OZON -->  
+    <!-- Блок для OZON -->  
     <div *ngIf="productForm.get('marketplace')?.value === 'OZON'">  
-      <div class="row" *ngFor="let field of ozonColumns">  
+      <!-- Поля ручного ввода для OZON -->  
+      <div class="row" *ngFor="let field of ozonManualFields">  
         <div class="col-2 input-label">{{ field.header }}</div>  
         <div class="col-10">  
-          <input class="input-field" type="text" [formControlName]="field.key" matInput />  
+          <input matInput type="text" [formControlName]="field.key" class="input-field" />  
+        </div>  
+      </div>  
+
+      <!-- Вычисляемые поля для OZON (отображаются как текст) -->  
+      <div class="row" *ngFor="let computed of ozonComputedFields">  
+        <div class="col-2 input-label">{{ computed.header }}</div>  
+        <div class="col-10">  
+          <span class="computed-value">{{ productForm.get(computed.key)?.value }}</span>  
         </div>  
       </div>  
     </div>  
 
-    <!-- Поля для Wildberries -->  
+    <!-- Блок для Wildberries -->  
     <div *ngIf="productForm.get('marketplace')?.value === 'Wildberries'">  
-      <div class="row" *ngFor="let field of wildberriesColumns">  
+      <!-- Поля ручного ввода для Wildberries -->  
+      <div class="row" *ngFor="let field of wildberriesManualFields">  
         <div class="col-2 input-label">{{ field.header }}</div>  
         <div class="col-10">  
-          <input class="input-field" type="text" [formControlName]="field.key" matInput />  
+          <input matInput type="text" [formControlName]="field.key" class="input-field" />  
+        </div>  
+      </div>  
+
+      <!-- Вычисляемые поля для Wildberries (отображаются как текст) -->  
+      <div class="row" *ngFor="let computed of wildberriesComputedFields">  
+        <div class="col-2 input-label">{{ computed.header }}</div>  
+        <div class="col-10">  
+          <span class="computed-value">{{ productForm.get(computed.key)?.value }}</span>  
         </div>  
       </div>  
     </div>  

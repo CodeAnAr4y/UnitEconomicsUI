@@ -27,25 +27,26 @@ export const ozonColumns = [
   { header: 'Статус', key: 'status' },
   { header: 'Цена реализации', key: 'salePrice' },
   { header: 'Комиссия OZON, %', key: 'ozonCommissionPercent' },
-  { header: 'Комиссия OZON, Р', key: 'ozonCommissionRub' },
-  { header: 'Логистика OZON, Р', key: 'ozonLogisticsRub' },
-  { header: 'Приемка ФБС', key: 'fbsReception' },
-  { header: 'Упаковка', key: 'packaging' },
-  { header: 'Эквайринг 1,5%', key: 'acquiringPercent' },
-  { header: 'Последняя миля', key: 'lastMile' },
-  { header: 'ДРР (15%)', key: 'drr15' },
-  { header: 'Услуга ведения 7%', key: 'managementService7' },
-  { header: 'Выручка', key: 'revenue' },
-  { header: 'Вал. приб/шт, Р', key: 'grossProfitPerUnit' },
-  { header: 'Маржа, %', key: 'marginPercent' },
+  { header: 'Комиссия OZON, Р', key: 'ozonCommissionRub' }, // Цена реализации * Комиссия OZON, %
+  { header: 'Логистика OZON, Р', key: 'ozonLogisticsRub' }, // if (Объем > 1) {76} else {76 + (Объем - 1) * 12}
+  { header: 'Приемка ФБС', key: 'fbsReception' }, // 30
+  { header: 'Упаковка', key: 'packaging' }, // 27.18
+  { header: 'Эквайринг 1,5%', key: 'acquiringPercent' }, // Цена реализации * 0.015
+  { header: 'Последняя миля', key: 'lastMile' }, // =ЕСЛИ(ЕСЛИ(Цена реализации*5,5%<20;20;Цена реализации*5,5%)>500;500;ЕСЛИ(Цена реализации*5,5%<20;20;Цена реализации*5,5%))
+  { header: 'Услуга ведения 7%', key: 'managementService7' }, // Выручка * 0.07
+  { header: 'Выручка', key: 'revenue' }, // Цена реализации - Логистика OZON, Р - Эквайринг 1,5% - Последняя миля - Комиссия OZON, Р
+  { header: 'Вал. приб/шт, Р', key: 'grossProfitPerUnit' }, // Цена реализации - Комиссия OZON, Р - Логистика OZON, Р - Приемка ФБС - Себестоимость в RUB - Упаковка - Эквайринг 1,5% - Последняя миля - Услуга ведения 7%
+  { header: 'Маржа, %', key: 'marginPercent' }, // =ЕСЛИОШИБКА(Чист. прибл., Р/Себестоимость в RUB; "")
   { header: 'Себестоимость BYN', key: 'costByn' },
   { header: 'Себестоимость в RUB', key: 'costRub' },
-  { header: 'Заказы, шт (продажи)', key: 'orders' },
-  { header: 'Сумма заказа (выручка), Р', key: 'orderSumRevenue' },
-  { header: 'Расходы, Р', key: 'expenses' },
-  { header: 'Налог', key: 'tax' },
-  { header: 'Чист. прибл., Р', key: 'netProfit' },
+  { header: 'Заказы, шт (продажи)', key: 'orders' }, // 1
+  { header: 'Сумма заказа (выручка), Р', key: 'orderSumRevenue' }, // Цена реализации * Заказы, шт (продажи)
+  { header: 'Расходы, Р', key: 'expenses' }, // (Комиссия OZON, Р + Логистика OZON, Р + Приемка ФБС + Себестоимость в RUB + Упаковка + Эквайринг 1,5% + Последняя миля + Услуга ведения 7%) * Заказы, шт (продажи)
+  { header: 'Налог', key: 'tax' }, // Цена реализации / 6
+  { header: 'Чист. прибл., Р', key: 'netProfit' }, // Сумма заказа (выручка), Р - Расходы, Р - Налог
 ];
+
+export const course = 0.0368; // курс
 
 export const wildberriesColumns = [
   { header: 'Артикул продавца', key: 'sellerArticle' },
@@ -53,35 +54,37 @@ export const wildberriesColumns = [
   { header: 'Баркод', key: 'barcode' },
   { header: 'Остатки ФБО', key: 'fboRemains' },
   { header: 'закупочная 1ед товара в BYN', key: 'purchasePriceUnitByn' },
-  { header: 'закупочная 1ед товара в RUB', key: 'purchasePriceUnitRub' },
-  { header: 'цена, BYN', key: 'priceByn' },
-  { header: 'Цена с спп BYN', key: 'priceWithSPP_Byn' },
-  { header: 'Цена с спп RUB', key: 'priceWithSPP_Rub' },
+  { header: 'закупочная 1ед товара в RUB', key: 'purchasePriceUnitRub' }, // рассчитывается из цены в белках / курс
+  { header: 'цена, BYN', key: 'priceByn' }, // цена реализации * курс валют
+  { header: 'Цена с спп BYN', key: 'priceWithSPP_Byn' }, // (цена реализации - (цена реализации * спп)) * курс
+  { header: 'Цена с спп RUB', key: 'priceWithSPP_Rub' }, // (цена реализации - (цена реализации * спп))
   { header: 'Спп', key: 'spp' },
-  { header: 'цена RUB', key: 'priceRub' },
-  { header: 'Цена реализации RUB', key: 'salePriceRub' },
+  { header: 'цена RUB', key: 'priceRub' }, 
+  { header: 'Цена реализации RUB', key: 'salePriceRub' }, // цена Rub - (цена RUB * скидка наша)
   { header: 'Скидка наша', key: 'ourDiscount' },
-  { header: 'ROI', key: 'roi' },
-  { header: 'Маржинальность', key: 'margin' },
-  { header: 'Прибыль RUB', key: 'profitRub' },
-  { header: 'Прибыль BYN', key: 'profitByn' },
-  { header: 'Налог 20%, рос руб', key: 'tax20RosRub' },
-  { header: 'Налог 20%, BYN', key: 'tax20Byn' },
-  { header: 'ДхШхВ, см', key: 'dimensions' },
-  { header: 'Объем л', key: 'volumeL' },
-  { header: 'Логистика до покупателя RUB', key: 'logisticsToCustomerRub' },
-  { header: 'Коэф. склада логистика', key: 'logisticWarehouseCoef' },
-  { header: 'Коэф. склада хранение', key: 'storageWarehouseCoef' },
-  { header: 'комиссия вб, %', key: 'wildberriesCommissionPercent' },
-  { header: 'комиссия вб RUB', key: 'wildberriesCommissionRub' },
-  { header: 'Эквайринг 2% RUB', key: 'acquiring2PercentRub' },
-  { header: 'Упаковка, BYN', key: 'packagingByn' },
-  { header: 'Ведение 7%, BYN', key: 'management7PercentByn' },
-  { header: 'Приемка', key: 'fbsReception' },
-  { header: 'Доставка до WB, RUB', key: 'deliveryToWBRub' },
-  { header: 'Хранение', key: 'storage' },
-  { header: 'Хранение за 30 дней', key: 'storage30Days' },
-  { header: 'выручка в рос руб', key: 'revenueRosRub' },
+  { header: 'ROI', key: 'roi' }, // прибыль RUB / закупочная 1ед товара в RUB
+  { header: 'Маржинальность', key: 'margin' }, // прибыль RUB / Цена реализации RUB
+  { header: 'Прибыль RUB', key: 'profitRub' }, // (выручка в RUB - закупочная 1ед товара в RUB - упаковка BYN / курс) - Налог 20%, рос руб - (Ведение 7%, BYN / курс) - Доставка до WB, RUB - Хранение за 30 дней - Приемка
+  { header: 'Прибыль BYN', key: 'profitByn' }, // прибыль RUB * курс
+  { header: 'Налог 20%, рос руб', key: 'tax20RosRub' }, // (выручка в рос руб - Упаковка, BYN - закупочная 1ед товара в RUB) * 0.2
+  { header: 'Налог 20%, BYN', key: 'tax20Byn' }, // Налог 20%, рос руб * курс
+  { header: 'Длина, см', key: 'length' },
+  { header: 'Ширина, см', key: 'width' },
+  { header: 'Высота, см', key: 'height' },
+  { header: 'Объем л', key: 'volumeL' }, // (Д * Ш * В) / 1000
+  { header: 'Логистика до покупателя RUB', key: 'logisticsToCustomerRub' }, // if (объем <= 1) {38 * Коэф. склада логистика} else {38 * Коэф. склада логистика + Объем л * (9.5 * Коэф. склада логистика) - (9.5 * Коэф. склада логистика)}
+  { header: 'Коэф. склада логистика', key: 'logisticWarehouseCoef' }, // 125%
+  { header: 'Коэф. склада хранение', key: 'storageWarehouseCoef' }, // 135%
+  { header: 'комиссия вб, %', key: 'wildberriesCommissionPercent' }, // 19.5%
+  { header: 'комиссия вб RUB', key: 'wildberriesCommissionRub' }, // комиссия вб, % * Цена реализации RUB
+  { header: 'Эквайринг 2% RUB', key: 'acquiring2PercentRub' }, // Цена реализации RUB * 0.02
+  { header: 'Упаковка, BYN', key: 'packagingByn' }, // 1
+  { header: 'Ведение BYN', key: 'management7PercentByn' }, // (выручка в рос руб * 0.07) * курс 
+  { header: 'Приемка', key: 'fbsReception' }, // 0
+  { header: 'Доставка до WB, RUB', key: 'deliveryToWBRub' }, // if (Остатки ФБО > 0) {14} else {0}
+  { header: 'Хранение', key: 'storage' }, // if (Остатки ФБО > 0) {if (Объем л <= 1) {0.07 * Коэф. склада хранение} else {0.07 * Коэф. склада хранение + Объем л * (0.07 * Коэф. склада хранение) - (0.07 * Коэф. склада хранение)} else 0}
+  { header: 'Хранение за 30 дней', key: 'storage30Days' }, //  Хранение * 30
+  { header: 'выручка в рос руб', key: 'revenueRosRub' }, // Цена реализации RUB - Логистика до покупателя RUB - комиссия вб RUB - Эквайринг 2% RUB
 ];
 
 @Component({
@@ -239,4 +242,5 @@ export class MainComponent implements OnInit {
       }  
     });  
   }  
+
 }
