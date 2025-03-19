@@ -18,7 +18,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';  
 import { MatFormFieldModule } from '@angular/material/form-field';  
 import { Seller } from '../../services/seller.service';  
-import { course } from '../../components/main/main.component'; // курс валют  
+import { EconomicCalculationService } from '../../services/economic-calculation.service';  
+import { Product, ProductService } from '../../services/product.service';  
+
+// Импорт нового компонента  
+import { DragAndDropComponent } from '../drag-and-drop/drag-and-drop.component';  
 
 interface ComputedField {  
   key: string;  
@@ -37,6 +41,7 @@ interface ComputedField {
     MatInputModule,  
     MatSelectModule,  
     MatFormFieldModule,  
+    DragAndDropComponent // Подключаем компонент DragAndDrop  
   ],  
   templateUrl: './add-product-dialog.component.html',  
   styleUrls: ['./add-product-dialog.component.scss']  
@@ -44,6 +49,8 @@ interface ComputedField {
 export class AddProductDialogComponent implements OnInit {  
   productForm: FormGroup;  
   seller: Seller;  
+  // Данные, полученные из Excel  
+  excelData: any[] = [];  
 
   // ПОЛЯ РУЧНОГО ВВОДА для OZON  
   ozonManualFields = [  
@@ -58,21 +65,21 @@ export class AddProductDialogComponent implements OnInit {
 
   // ПОЛЯ ВЫЧИСЛЯЕМЫЕ для OZON  
   ozonComputedFields: ComputedField[] = [  
-    { key: 'ozonCommissionRub', header: 'Комиссия OZON, Р' },          // salePrice * (ozonCommissionPercent/100)  
-    { key: 'ozonLogisticsRub', header: 'Логистика OZON, Р' },            // volume<=1 ? 76 : 76 + (volume - 1)*12  
-    { key: 'fbsReception', header: 'Приемка ФБС' },                     // 30  
-    { key: 'packaging', header: 'Упаковка' },                            // 27.18  
-    { key: 'acquiringPercent', header: 'Эквайринг 1,5%' },              // salePrice * 0.015  
-    { key: 'lastMile', header: 'Последняя миля' },                        // if( salePrice*0.055 <20 then 20, if >500 then 500, else salePrice*0.055)  
-    { key: 'managementService7', header: 'Услуга ведения 7%' },           // revenue * 0.07  
-    { key: 'revenue', header: 'Выручка' },                               // salePrice - (ozonLogisticsRub + acquiringPercent + lastMile + ozonCommissionRub)  
-    { key: 'grossProfitPerUnit', header: 'Вал. приб/шт, Р' },            // salePrice - (ozonCommissionRub + ozonLogisticsRub + fbsReception + costRub + packaging + acquiringPercent + lastMile + managementService7)  
-    { key: 'marginPercent', header: 'Маржа, %' },                        // grossProfitPerUnit / costRub * 100  
-    { key: 'orders', header: 'Заказы, шт (продажи)' },                   // 1  
-    { key: 'orderSumRevenue', header: 'Сумма заказа (выручка), Р' },      // salePrice * orders  
-    { key: 'expenses', header: 'Расходы, Р' },                           // (ozonCommissionRub+ozonLogisticsRub+fbsReception+costRub+packaging+acquiringPercent+lastMile+managementService7)*orders  
-    { key: 'tax', header: 'Налог' },                                     // salePrice/6  
-    { key: 'netProfit', header: 'Чист. прибл., Р' },                      // orderSumRevenue - expenses - tax  
+    { key: 'ozonCommissionRub', header: 'Комиссия OZON, Р' },  
+    { key: 'ozonLogisticsRub', header: 'Логистика OZON, Р' },  
+    { key: 'fbsReception', header: 'Приемка ФБС' },  
+    { key: 'packaging', header: 'Упаковка' },  
+    { key: 'acquiringPercent', header: 'Эквайринг 1,5%' },  
+    { key: 'lastMile', header: 'Последняя миля' },  
+    { key: 'managementService7', header: 'Услуга ведения 7%' },  
+    { key: 'revenue', header: 'Выручка' },  
+    { key: 'grossProfitPerUnit', header: 'Вал. приб/шт, Р' },  
+    { key: 'marginPercent', header: 'Маржа, %' },  
+    { key: 'orders', header: 'Заказы, шт (продажи)' },  
+    { key: 'orderSumRevenue', header: 'Сумма заказа (выручка), Р' },  
+    { key: 'expenses', header: 'Расходы, Р' },  
+    { key: 'tax', header: 'Налог' },  
+    { key: 'netProfit', header: 'Чист. прибл., Р' },  
   ];  
 
   // ПОЛЯ РУЧНОГО ВВОДА для Wildberries  
@@ -92,37 +99,42 @@ export class AddProductDialogComponent implements OnInit {
 
   // ПОЛЯ ВЫЧИСЛЯЕМЫЕ для Wildberries  
   wildberriesComputedFields: ComputedField[] = [  
-    { key: 'purchasePriceUnitRub', header: 'закупочная 1ед товара в RUB' }, // purchasePriceUnitByn / course  
-    { key: 'salePriceRub', header: 'Цена реализации RUB' },                  // priceRub - (priceRub * ourDiscount)  
-    { key: 'priceByn', header: 'цена, BYN' },                                 // salePriceRub * course  
-    { key: 'priceWithSPP_Rub', header: 'Цена с спп RUB' },                     // salePriceRub - (salePriceRub * spp)  
-    { key: 'priceWithSPP_Byn', header: 'Цена с спп BYN' },                     // priceWithSPP_Rub * course  
-    { key: 'roi', header: 'ROI' },                                            // profitRub / purchasePriceUnitRub * 100  
-    { key: 'margin', header: 'Маржинальность' },                              // profitRub / salePriceRub * 100  
-    { key: 'tax20RosRub', header: 'Налог 20%, рос руб' },                     // (revenueRosRub - packagingByn - purchasePriceUnitRub) * 0.2  
-    { key: 'tax20Byn', header: 'Налог 20%, BYN' },                            // tax20RosRub * course  
-    { key: 'volumeL', header: 'Объем л' },                                    // (length*width*height)/1000  
-    { key: 'logisticsToCustomerRub', header: 'Логистика до покупателя RUB' },   // if(volumeL<=1) {38*logisticWarehouseCoef} else {38*logisticWarehouseCoef + volumeL*(9.5*logisticWarehouseCoef) - (9.5*logisticWarehouseCoef)}  
-    { key: 'logisticWarehouseCoef', header: 'Коэф. склада логистика' },       // 1.25  
-    { key: 'storageWarehouseCoef', header: 'Коэф. склада хранение' },          // 1.35  
-    { key: 'wildberriesCommissionRub', header: 'комиссия вб RUB' },           // salePriceRub * (wildberriesCommissionPercent/100)  
-    { key: 'acquiring2PercentRub', header: 'Эквайринг 2% RUB' },              // salePriceRub * 0.02  
-    { key: 'packagingByn', header: 'Упаковка, BYN' },                         // 1  
-    { key: 'management7PercentByn', header: 'Ведение BYN' },                  // revenueRosRub * 0.07 * course  
-    { key: 'fbsReception', header: 'Приемка' },                              // 0  
-    { key: 'deliveryToWBRub', header: 'Доставка до WB, RUB' },                // fboRemains > 0 ? 14 : 0  
-    { key: 'storage', header: 'Хранение' },                                  // если fboRemains > 0: volumeL<=1 ? 0.07*storageWarehouseCoef : (0.07*storageWarehouseCoef + volumeL*(0.07*storageWarehouseCoef) - (0.07*storageWarehouseCoef)); иначе 0  
-    { key: 'storage30Days', header: 'Хранение за 30 дней' },                  // storage * 30  
-    { key: 'revenueRosRub', header: 'выручка в рос руб' },                    // salePriceRub - logisticsToCustomerRub - wildberriesCommissionRub - acquiring2PercentRub  
-    { key: 'profitRub', header: 'Прибыль RUB' },                              // (revenueRosRub - purchasePriceUnitRub - (packagingByn / course)) - tax20RosRub - (management7PercentByn / course) - deliveryToWBRub - storage30Days - fbsReception  
-    { key: 'profitByn', header: 'Прибыль BYN' }                               // profitRub * course  
+    { key: 'purchasePriceUnitRub', header: 'закупочная 1ед товара в RUB' },  
+    { key: 'salePriceRub', header: 'Цена реализации RUB' },  
+    { key: 'priceByn', header: 'цена, BYN' },  
+    { key: 'priceWithSPP_Rub', header: 'Цена с спп RUB' },  
+    { key: 'priceWithSPP_Byn', header: 'Цена с спп BYN' },  
+    { key: 'roi', header: 'ROI' },  
+    { key: 'margin', header: 'Маржинальность' },  
+    { key: 'tax20RosRub', header: 'Налог 20%, рос руб' },  
+    { key: 'tax20Byn', header: 'Налог 20%, BYN' },  
+    { key: 'volumeL', header: 'Объем л' },  
+    { key: 'logisticsToCustomerRub', header: 'Логистика до покупателя RUB' },  
+    { key: 'logisticWarehouseCoef', header: 'Коэф. склада логистика' },  
+    { key: 'storageWarehouseCoef', header: 'Коэф. склада хранение' },  
+    { key: 'wildberriesCommissionRub', header: 'комиссия вб RUB' },  
+    { key: 'acquiring2PercentRub', header: 'Эквайринг 2% RUB' },  
+    { key: 'packagingByn', header: 'Упаковка, BYN' },  
+    { key: 'management7PercentByn', header: 'Ведение BYN' },  
+    { key: 'fbsReception', header: 'Приемка' },  
+    { key: 'deliveryToWBRub', header: 'Доставка до WB, RUB' },  
+    { key: 'storage', header: 'Хранение' },  
+    { key: 'storage30Days', header: 'Хранение за 30 дней' },  
+    { key: 'revenueRosRub', header: 'выручка в рос руб' },  
+    { key: 'profitRub', header: 'Прибыль RUB' },  
+    { key: 'profitByn', header: 'Прибыль BYN' },  
   ];  
+
+  payload: any = null;
 
   constructor(  
     public dialogRef: MatDialogRef<AddProductDialogComponent>,  
     @Inject(MAT_DIALOG_DATA) public data: any,  
-    private fb: FormBuilder  
+    private fb: FormBuilder,  
+    private economicCalculationService: EconomicCalculationService,  
+    private productService: ProductService  
   ) {  
+    console.log('data', data);
     this.seller = data.seller;  
 
     // Изначально выбираем маркетплейс OZON  
@@ -141,17 +153,16 @@ export class AddProductDialogComponent implements OnInit {
 
     // Добавляем контролы для ручного ввода Wildberries  
     this.wildberriesManualFields.forEach(field => {  
-      // Если уже существует (например, sellerArticle), не пересоздаём  
       if (!this.productForm.contains(field.key)) {  
         this.productForm.addControl(field.key, this.fb.control('', Validators.required));  
       }  
     });  
+
     // Добавляем контролы для вычисляемых полей Wildberries (readOnly)  
     this.wildberriesComputedFields.forEach(field => {  
       this.productForm.addControl(field.key, this.fb.control({ value: '', disabled: true }));  
     });  
 
-    // Устанавливаем валидаторы для выбранного маркетплейса  
     this.setValidators(this.productForm.get('marketplace')?.value);  
 
     // При переключении площадки обновляем валидаторы  
@@ -159,7 +170,23 @@ export class AddProductDialogComponent implements OnInit {
       this.setValidators(value);  
     });  
 
-    // Подписываемся на изменения формы для мгновенного пересчёта вычисляемых полей  
+      // Если имеются данные выбранного товара, заполняем поля формы  
+    if (data.product) {  
+      // Заполняем контролы из объекта details  
+      for (const key in data.product.details) {  
+        if (this.productForm.contains(key)) {  
+          this.productForm.get(key)?.setValue(data.product.details[key]);  
+        }  
+      }  
+      const marketplace = this.productForm.get('marketplace')?.value;  
+      if (marketplace === 'OZON') {  
+        this.calculateOzonFields();  
+      } else if (marketplace === 'Wildberries') {  
+        this.calculateWildberriesFields();  
+      }  
+    } 
+
+    // Подписка на изменения формы для пересчёта вычисляемых полей (при ручном вводе)  
     this.productForm.valueChanges.subscribe(() => {  
       const marketplace = this.productForm.get('marketplace')?.value;  
       if (marketplace === 'OZON') {  
@@ -173,7 +200,7 @@ export class AddProductDialogComponent implements OnInit {
   ngOnInit(): void {}  
 
   private setValidators(marketplace: string): void {  
-    // Для OZON: контролы ручного ввода активны, а для Wildberries – валидаторы снимаем  
+    // Для OZON  
     this.ozonManualFields.forEach(field => {  
       const control = this.productForm.get(field.key);  
       if (marketplace === 'OZON') {  
@@ -183,7 +210,6 @@ export class AddProductDialogComponent implements OnInit {
       }  
       control?.updateValueAndValidity();  
     });  
-
     // Для Wildberries  
     this.wildberriesManualFields.forEach(field => {  
       const control = this.productForm.get(field.key);  
@@ -196,78 +222,37 @@ export class AddProductDialogComponent implements OnInit {
     });  
   }  
 
-  // Вычисления для OZON  
+  // Пример вычислений для OZON (при ручном вводе) - аналог функций расчёта  
   private calculateOzonFields(): void {  
-    console.log("start changing");
-    // Читаем необходимые поля (все числовые значения)  
     const salePrice = parseFloat(this.getValue('salePrice'));  
     const volume = parseFloat(this.getValue('volume'));  
     const ozonCommissionPercent = parseFloat(this.getValue('ozonCommissionPercent'));  
     const costRub = parseFloat(this.getValue('costRub'));  
-    
     if (isNaN(salePrice) || isNaN(volume) || isNaN(ozonCommissionPercent) || isNaN(costRub)) {  
       return;  
     }  
-    
-    // 1. Комиссия OZON, Р  
-    const ozonCommissionRub = salePrice * (ozonCommissionPercent / 100);  
-    // 2. Логистика OZON, Р  
-    const ozonLogisticsRub = volume <= 1 ? 76 : (76 + (volume - 1) * 12);  
-    // 3. Приемка ФБС = 30  
-    const fbsReception = 30;  
-    // 4. Упаковка = 27.18  
-    const packaging = 27.18;  
-    // 5. Эквайринг 1,5%  
-    const acquiringPercent = salePrice * 0.015;  
-    // 6. Последняя миля  
-    let lastMile = salePrice * 0.055;  
-    if (lastMile < 20) { lastMile = 20; }  
-    if (lastMile > 500) { lastMile = 500; }  
-    // 7. Выручка  
-    const revenue = salePrice - (ozonLogisticsRub + acquiringPercent + lastMile + ozonCommissionRub);  
-    // 8. Услуга ведения 7%  
-    const managementService7 = revenue * 0.07;  
-    // 9. Валовая прибыль за единицу  
-    const grossProfitPerUnit = salePrice - (ozonCommissionRub + ozonLogisticsRub + fbsReception + costRub + packaging + acquiringPercent + lastMile + managementService7);  
-    // 10. Маржа, %  
-    const marginPercent = costRub !== 0 ? (grossProfitPerUnit / costRub) * 100 : 0;  
-    // 11. Заказы (константа = 1)  
-    const orders = 1;  
-    // 12. Сумма заказа (выручка)  
-    const orderSumRevenue = salePrice * orders;  
-    // 13. Расходы  
-    const expenses = (ozonCommissionRub + ozonLogisticsRub + fbsReception + costRub + packaging + acquiringPercent + lastMile + managementService7) * orders;  
-    // 14. Налог  
-    const tax = salePrice / 6;  
-    // 15. Чистая прибыль  
-    const netProfit = orderSumRevenue - expenses - tax;  
-
-    // Обновляем контролы с вычисленными значениями  
+    const calc = this.economicCalculationService.calculateOzonFields(salePrice, volume, ozonCommissionPercent, costRub);  
     this.productForm.patchValue({  
-      ozonCommissionRub: ozonCommissionRub.toFixed(2),  
-      ozonLogisticsRub: ozonLogisticsRub.toFixed(2),  
-      fbsReception: fbsReception,  
-      packaging: packaging,  
-      acquiringPercent: acquiringPercent.toFixed(2),  
-      lastMile: lastMile.toFixed(2),  
-      revenue: revenue.toFixed(2),  
-      managementService7: managementService7.toFixed(2),  
-      grossProfitPerUnit: grossProfitPerUnit.toFixed(2),  
-      marginPercent: marginPercent.toFixed(2),  
-      orders: orders,  
-      orderSumRevenue: orderSumRevenue.toFixed(2),  
-      expenses: expenses.toFixed(2),  
-      tax: tax.toFixed(2),  
-      netProfit: netProfit.toFixed(2)  
+      ozonCommissionRub: calc.ozonCommissionRub.toFixed(2),  
+      ozonLogisticsRub: calc.ozonLogisticsRub.toFixed(2),  
+      fbsReception: calc.fbsReception,  
+      packaging: calc.packaging,  
+      acquiringPercent: calc.acquiringPercent.toFixed(2),  
+      lastMile: calc.lastMile.toFixed(2),  
+      revenue: calc.revenue.toFixed(2),  
+      managementService7: calc.managementService7.toFixed(2),  
+      grossProfitPerUnit: calc.grossProfitPerUnit.toFixed(2),  
+      marginPercent: calc.marginPercent.toFixed(2),  
+      orders: calc.orders,  
+      orderSumRevenue: calc.orderSumRevenue.toFixed(2),  
+      expenses: calc.expenses.toFixed(2),  
+      tax: calc.tax.toFixed(2),  
+      netProfit: calc.netProfit.toFixed(2)  
     }, { emitEvent: false });  
-
-    console.log("Values patched", this.productForm.value);
   }  
 
-  // Вычисления для Wildberries  
+  // Пример вычислений для Wildberries (при ручном вводе) - аналог функций расчёта  
   private calculateWildberriesFields(): void {  
-    console.log("start changing");
-    // Читаем необходимые поля  
     const priceRubInput = parseFloat(this.getValue('priceRub'));  
     const ourDiscount = parseFloat(this.getValue('ourDiscount'));  
     const spp = parseFloat(this.getValue('spp'));  
@@ -276,7 +261,6 @@ export class AddProductDialogComponent implements OnInit {
     const width = parseFloat(this.getValue('width'));  
     const height = parseFloat(this.getValue('height'));  
     const fboRemains = parseFloat(this.getValue('fboRemains'));  
-
     if (  
       isNaN(priceRubInput) ||  
       isNaN(ourDiscount) ||  
@@ -289,97 +273,35 @@ export class AddProductDialogComponent implements OnInit {
     ) {  
       return;  
     }  
-
-    // Константы  
-    const logisticWarehouseCoef = 1.25;  
-    const storageWarehouseCoef = 1.35;  
-    const wildberriesCommissionPercent = 19.5; // по условиям  
-
-    // 1. закупочная 1ед товара в RUB  
-    const purchasePriceUnitRub = purchasePriceUnitByn / course;  
-    // 2. Цена реализации RUB = priceRub - (priceRub * ourDiscount)  
-    const salePriceRub = priceRubInput - (priceRubInput * ourDiscount);  
-    // 3. цена, BYN = salePriceRub * course  
-    const priceByn = salePriceRub * course;  
-    // 4. Цена с спп RUB = salePriceRub - (salePriceRub * spp)  
-    const priceWithSPP_Rub = salePriceRub - (salePriceRub * spp);  
-    // 5. Цена с спп BYN = priceWithSPP_Rub * course  
-    const priceWithSPP_Byn = priceWithSPP_Rub * course;  
-    // 6. Объем л = (Длина*Ширина*Высота)/1000  
-    const volumeL = (length * width * height) / 1000;  
-    // 7. Логистика до покупателя RUB  
-    let logisticsToCustomerRub = 38 * logisticWarehouseCoef;  
-    if (volumeL > 1) {  
-      logisticsToCustomerRub = 38 * logisticWarehouseCoef + volumeL * (9.5 * logisticWarehouseCoef) - (9.5 * logisticWarehouseCoef);  
-    }  
-    // 8. комиссия вб RUB = salePriceRub * (wildberriesCommissionPercent/100)  
-    const wildberriesCommissionRub = salePriceRub * (wildberriesCommissionPercent / 100);  
-    // 9. Эквайринг 2% RUB = salePriceRub * 0.02  
-    const acquiring2PercentRub = salePriceRub * 0.02;  
-    // 10. Упаковка, BYN = 1  
-    const packagingByn = 1;  
-    // 11. Для расчёта revenueRosRub сначала вычислим:  
-    // revenueRosRub = salePriceRub - logisticsToCustomerRub - wildberriesCommissionRub - acquiring2PercentRub  
-    const revenueRosRub = salePriceRub - logisticsToCustomerRub - wildberriesCommissionRub - acquiring2PercentRub;  
-    // 12. Налог 20%, рос руб = (revenueRosRub - packagingByn - purchasePriceUnitRub) * 0.2  
-    const tax20RosRub = (revenueRosRub - packagingByn - purchasePriceUnitRub) * 0.2;  
-    // 13. Налог 20%, BYN = tax20RosRub * course  
-    const tax20Byn = tax20RosRub * course;  
-    // 14. Ведение BYN = revenueRosRub * 0.07 * course  
-    const management7PercentByn = revenueRosRub * 0.07 * course;  
-    // 15. Доставка до WB, RUB = fboRemains > 0 ? 14 : 0  
-    const deliveryToWBRub = fboRemains > 0 ? 14 : 0;  
-    // 16. Хранение: если fboRemains > 0  
-    let storage = 0;  
-    if (fboRemains > 0) {  
-      if (volumeL <= 1) {  
-        storage = 0.07 * storageWarehouseCoef;  
-      } else {  
-        storage = 0.07 * storageWarehouseCoef + volumeL * (0.07 * storageWarehouseCoef) - (0.07 * storageWarehouseCoef);  
-      }  
-    }  
-    // 17. Хранение за 30 дней = storage * 30  
-    const storage30Days = storage * 30;  
-    // 18. Прибыль RUB:  
-    // profitRub = (revenueRosRub - purchasePriceUnitRub - (packagingByn / course)) - tax20RosRub - (management7PercentByn / course) - deliveryToWBRub - storage30Days - fbsReception  
-    // fbsReception для Wildberries = 0  
-    const profitRub = (revenueRosRub - purchasePriceUnitRub - (packagingByn / course)) - tax20RosRub - (management7PercentByn / course) - deliveryToWBRub - storage30Days - 0;  
-    // 19. Прибыль BYN = profitRub * course  
-    const profitByn = profitRub * course;  
-    // 20. ROI = (profitRub / purchasePriceUnitRub) * 100 (если purchasePriceUnitRub != 0)  
-    const roi = purchasePriceUnitRub !== 0 ? (profitRub / purchasePriceUnitRub) * 100 : 0;  
-    // 21. Маржинальность = profitRub / salePriceRub * 100  
-    const margin = salePriceRub !== 0 ? (profitRub / salePriceRub) * 100 : 0;  
-
-    // Обновляем контролы с вычисленными значениями  
+    const calc = this.economicCalculationService.calculateWildberriesFields(  
+      priceRubInput, ourDiscount, spp, purchasePriceUnitByn, length, width, height, fboRemains  
+    );  
     this.productForm.patchValue({  
-      purchasePriceUnitRub: purchasePriceUnitRub.toFixed(2),  
-      salePriceRub: salePriceRub.toFixed(2),  
-      priceByn: priceByn.toFixed(2),  
-      priceWithSPP_Rub: priceWithSPP_Rub.toFixed(2),  
-      priceWithSPP_Byn: priceWithSPP_Byn.toFixed(2),  
-      roi: roi.toFixed(2),  
-      margin: margin.toFixed(2),  
-      tax20RosRub: tax20RosRub.toFixed(2),  
-      tax20Byn: tax20Byn.toFixed(2),  
-      volumeL: volumeL.toFixed(3),  
-      logisticsToCustomerRub: logisticsToCustomerRub.toFixed(2),  
-      logisticWarehouseCoef: logisticWarehouseCoef,  
-      storageWarehouseCoef: storageWarehouseCoef,  
-      wildberriesCommissionRub: wildberriesCommissionRub.toFixed(2),  
-      acquiring2PercentRub: acquiring2PercentRub.toFixed(2),  
-      packagingByn: packagingByn,  
-      management7PercentByn: management7PercentByn.toFixed(2),  
+      purchasePriceUnitRub: calc.purchasePriceUnitRub.toFixed(2),  
+      salePriceRub: calc.salePriceRub.toFixed(2),  
+      priceByn: calc.priceByn.toFixed(2),  
+      priceWithSPP_Rub: calc.priceWithSPP_Rub.toFixed(2),  
+      priceWithSPP_Byn: calc.priceWithSPP_Byn.toFixed(2),  
+      roi: calc.roi.toFixed(2),  
+      margin: calc.margin.toFixed(2),  
+      tax20RosRub: calc.tax20RosRub.toFixed(2),  
+      tax20Byn: calc.tax20Byn.toFixed(2),  
+      volumeL: calc.volumeL.toFixed(3),  
+      logisticsToCustomerRub: calc.logisticsToCustomerRub.toFixed(2),  
+      logisticWarehouseCoef: calc.logisticWarehouseCoef,  
+      storageWarehouseCoef: calc.storageWarehouseCoef,  
+      wildberriesCommissionRub: calc.wildberriesCommissionRub.toFixed(2),  
+      acquiring2PercentRub: calc.acquiring2PercentRub.toFixed(2),  
+      packagingByn: calc.packagingByn,  
+      management7PercentByn: calc.management7PercentByn.toFixed(2),  
       fbsReception: 0,  
-      deliveryToWBRub: deliveryToWBRub,  
-      storage: storage.toFixed(2),  
-      storage30Days: storage30Days.toFixed(2),  
-      revenueRosRub: revenueRosRub.toFixed(2),  
-      profitRub: profitRub.toFixed(2),  
-      profitByn: profitByn.toFixed(2),  
+      deliveryToWBRub: calc.deliveryToWBRub,  
+      storage: calc.storage.toFixed(2),  
+      storage30Days: calc.storage30Days.toFixed(2),  
+      revenueRosRub: calc.revenueRosRub.toFixed(2),  
+      profitRub: calc.profitRub.toFixed(2),  
+      profitByn: calc.profitByn.toFixed(2)  
     }, { emitEvent: false });  
-    console.log("Values patched", this.productForm.value);
-
   }  
 
   // Утилита для получения значения контрола  
@@ -388,21 +310,159 @@ export class AddProductDialogComponent implements OnInit {
     return control ? control.value : '';  
   }  
 
+  // Обработчик события, получаем данные из DragAndDropComponent  
+  onFileLoaded(data: any[]): void {  
+    // Сохраняем данные, полученные из Excel  
+    this.excelData = data;  
+  
+    this.excelData.forEach(row => {  
+      console.log('Обрабатываем строку:', row);  
+      const marketplace = this.productForm.get('marketplace')?.value;  
+      // Выбираем константы соответствующие маркетплейсу  
+      const manualFields = marketplace === 'OZON' ? this.ozonManualFields : this.wildberriesManualFields;  
+      let details: any = {};  
+  
+      // Сопоставляем значения из строки с полями формы  
+      manualFields.forEach(field => {  
+        details[field.key] = row[field.header] || '';  
+      });  
+  
+      // Вычисляем остальные поля, в зависимости от маркетплейса  
+      if (marketplace === 'OZON') {  
+        // Извлекаем необходимые значения для расчёта  
+        const salePrice = parseFloat(details['salePrice']);  
+        const volume = parseFloat(details['volume']);  
+        const ozonCommissionPercent = parseFloat(details['ozonCommissionPercent']);  
+        const costRub = parseFloat(details['costRub']);  
+  
+        // Если данные корректны, проводим расчёт  
+        if (!isNaN(salePrice) && !isNaN(volume) && !isNaN(ozonCommissionPercent) && !isNaN(costRub)) {  
+          const calc = this.economicCalculationService.calculateOzonFields(salePrice, volume, ozonCommissionPercent, costRub);  
+  
+          // Объединяем вычисленные поля с существующими значениями  
+          details = {  
+            ...details,  
+            ozonCommissionRub: calc.ozonCommissionRub.toFixed(2),  
+            ozonLogisticsRub: calc.ozonLogisticsRub.toFixed(2),  
+            fbsReception: calc.fbsReception,  
+            packaging: calc.packaging,  
+            acquiringPercent: calc.acquiringPercent.toFixed(2),  
+            lastMile: calc.lastMile.toFixed(2),  
+            revenue: calc.revenue.toFixed(2),  
+            managementService7: calc.managementService7.toFixed(2),  
+            grossProfitPerUnit: calc.grossProfitPerUnit.toFixed(2),  
+            marginPercent: calc.marginPercent.toFixed(2),  
+            orders: calc.orders,  
+            orderSumRevenue: calc.orderSumRevenue.toFixed(2),  
+            expenses: calc.expenses.toFixed(2),  
+            tax: calc.tax.toFixed(2),  
+            netProfit: calc.netProfit.toFixed(2)  
+          };  
+        }  
+      } else if (marketplace === 'Wildberries') {  
+        // Извлекаем необходимые значения для расчёта  
+        const priceRubInput = parseFloat(details['priceRub']);  
+        const ourDiscount = parseFloat(details['ourDiscount']);  
+        const spp = parseFloat(details['spp']);  
+        const purchasePriceUnitByn = parseFloat(details['purchasePriceUnitByn']);  
+        const length = parseFloat(details['length']);  
+        const width = parseFloat(details['width']);  
+        const height = parseFloat(details['height']);  
+        const fboRemains = parseFloat(details['fboRemains']);  
+  
+        // Если данные корректны, проводим расчёт  
+        if (  
+          !isNaN(priceRubInput) && !isNaN(ourDiscount) && !isNaN(spp) &&  
+          !isNaN(purchasePriceUnitByn) && !isNaN(length) && !isNaN(width) &&  
+          !isNaN(height) && !isNaN(fboRemains)  
+        ) {  
+          const calc = this.economicCalculationService.calculateWildberriesFields(  
+            priceRubInput, ourDiscount, spp, purchasePriceUnitByn, length, width, height, fboRemains  
+          );  
+  
+          // Объединяем вычисленные поля с уже полученными данными  
+          details = {  
+            ...details,  
+            purchasePriceUnitRub: calc.purchasePriceUnitRub.toFixed(2),  
+            salePriceRub: calc.salePriceRub.toFixed(2),  
+            priceByn: calc.priceByn.toFixed(2),  
+            priceWithSPP_Rub: calc.priceWithSPP_Rub.toFixed(2),  
+            priceWithSPP_Byn: calc.priceWithSPP_Byn.toFixed(2),  
+            roi: calc.roi.toFixed(2),  
+            margin: calc.margin.toFixed(2),  
+            tax20RosRub: calc.tax20RosRub.toFixed(2),  
+            tax20Byn: calc.tax20Byn.toFixed(2),  
+            volumeL: calc.volumeL.toFixed(3),  
+            logisticsToCustomerRub: calc.logisticsToCustomerRub.toFixed(2),  
+            logisticWarehouseCoef: calc.logisticWarehouseCoef,  
+            storageWarehouseCoef: calc.storageWarehouseCoef,  
+            wildberriesCommissionRub: calc.wildberriesCommissionRub.toFixed(2),  
+            acquiring2PercentRub: calc.acquiring2PercentRub.toFixed(2),  
+            packagingByn: calc.packagingByn,  
+            management7PercentByn: calc.management7PercentByn.toFixed(2),  
+            fbsReception: 0,  
+            deliveryToWBRub: calc.deliveryToWBRub,  
+            storage: calc.storage.toFixed(2),  
+            storage30Days: calc.storage30Days.toFixed(2),  
+            revenueRosRub: calc.revenueRosRub.toFixed(2),  
+            profitRub: calc.profitRub.toFixed(2),  
+            profitByn: calc.profitByn.toFixed(2)  
+          };  
+        }  
+      }  
+  
+      // Формируем payload для отправки товара  
+      const productPayload = {  
+        marketplace: marketplace,  
+        seller: this.seller.id,  
+        details: details,  
+      };  
+  
+      console.log(productPayload);
+
+      // Отправка товара на сервер  
+      this.productService.addProduct(productPayload).subscribe({  
+        next: (newProduct: any) => {  
+          console.log('Добавлен товар:', newProduct);  
+        },  
+        error: (err) => {  
+          console.error('Ошибка добавления товара', err);  
+        },  
+      });  
+    });  
+  
+    this.dialogRef.close();  
+  } 
+
   onSubmit(): void {  
     if (this.productForm.valid) {  
       const marketplace = this.productForm.get('marketplace')?.value;  
       const productData: any = { marketplace };  
-      productData.seller = this.seller.id;  
-      // Собираем все данные, включая вычисленные поля (используем getRawValue для disabled контролов)  
+      productData.seller = this.seller.id;
       const allKeys = Object.keys(this.productForm.controls);  
       allKeys.forEach(key => {  
         productData[key] = this.productForm.getRawValue()[key];  
       });  
-      this.dialogRef.close(productData);  
+      console.log(productData);
+      this.data.product.details = productData;
+      if (this.data.product){
+        this.productService.updateProduct(this.data.product).subscribe({  
+          next: (newProduct: any) => {  
+            console.log('Добавлен товар:', newProduct);  
+            this.dialogRef.close();
+          },  
+          error: (err) => {  
+            this.dialogRef.close();
+            console.error('Ошибка добавления товара', err);  
+          },  
+        })
+      } else {
+        this.dialogRef.close(productData); 
+      } 
     } else {  
       console.log('Форма невалидна:', this.productForm.value);  
     }  
-  }  
+  }   
 
   onCancel(): void {  
     this.dialogRef.close();  

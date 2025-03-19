@@ -17,7 +17,7 @@ import { AddProductDialogComponent } from '../add-product-dialog/add-product-dia
 import { MatButtonModule } from '@angular/material/button';
 import { Product, ProductService } from '../../services/product.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';  
+import { MatSelectModule } from '@angular/material/select';
 import { Seller, SellerService } from '../../services/seller.service';
 import { AddSellerDialogComponent } from '../add-seller-dialog/add-seller-dialog.component';
 
@@ -59,7 +59,7 @@ export const wildberriesColumns = [
   { header: 'Цена с спп BYN', key: 'priceWithSPP_Byn' }, // (цена реализации - (цена реализации * спп)) * курс
   { header: 'Цена с спп RUB', key: 'priceWithSPP_Rub' }, // (цена реализации - (цена реализации * спп))
   { header: 'Спп', key: 'spp' },
-  { header: 'цена RUB', key: 'priceRub' }, 
+  { header: 'цена RUB', key: 'priceRub' },
   { header: 'Цена реализации RUB', key: 'salePriceRub' }, // цена Rub - (цена RUB * скидка наша)
   { header: 'Скидка наша', key: 'ourDiscount' },
   { header: 'ROI', key: 'roi' }, // прибыль RUB / закупочная 1ед товара в RUB
@@ -79,7 +79,7 @@ export const wildberriesColumns = [
   { header: 'комиссия вб RUB', key: 'wildberriesCommissionRub' }, // комиссия вб, % * Цена реализации RUB
   { header: 'Эквайринг 2% RUB', key: 'acquiring2PercentRub' }, // Цена реализации RUB * 0.02
   { header: 'Упаковка, BYN', key: 'packagingByn' }, // 1
-  { header: 'Ведение BYN', key: 'management7PercentByn' }, // (выручка в рос руб * 0.07) * курс 
+  { header: 'Ведение BYN', key: 'management7PercentByn' }, // (выручка в рос руб * 0.07) * курс
   { header: 'Приемка', key: 'fbsReception' }, // 0
   { header: 'Доставка до WB, RUB', key: 'deliveryToWBRub' }, // if (Остатки ФБО > 0) {14} else {0}
   { header: 'Хранение', key: 'storage' }, // if (Остатки ФБО > 0) {if (Объем л <= 1) {0.07 * Коэф. склада хранение} else {0.07 * Коэф. склада хранение + Объем л * (0.07 * Коэф. склада хранение) - (0.07 * Коэф. склада хранение)} else 0}
@@ -97,8 +97,8 @@ export const wildberriesColumns = [
     MatButtonToggleModule,
     MatDialogModule,
     MatButtonModule,
-    MatFormFieldModule,  
-    MatSelectModule,  
+    MatFormFieldModule,
+    MatSelectModule,
   ],
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.scss'],
@@ -107,7 +107,8 @@ export class MainComponent implements OnInit {
   searchValue: string = '';
   user: User = { id: 1, username: 'test', email: 'test@test.test' };
   products: Product[] = [];
-  sellers: Seller[] = []; 
+  selectedProduct: any = null;
+  sellers: Seller[] = [];
 
   ozonColumns = ozonColumns;
 
@@ -129,8 +130,16 @@ export class MainComponent implements OnInit {
     public dialog: MatDialog,
     private loginService: LoginService,
     private productService: ProductService,
-    private sellerService: SellerService,
+    private sellerService: SellerService
   ) {}
+
+  selectProduct(prod: any): void {
+    if (prod === this.selectedProduct) {
+      this.selectedProduct = null;
+    } else {
+      this.selectedProduct = prod;
+    }
+  }
 
   ngOnInit(): void {
     this.loginService.getUserProfile().subscribe(
@@ -170,18 +179,20 @@ export class MainComponent implements OnInit {
     });
   }
 
-  loadSellers(){
+  loadSellers() {
     this.sellerService.getAllSellers().subscribe(
       (data) => {
         this.sellers = data;
-        if (this.sellers && this.sellers.length > 0) {  
-          this.filtersForm.patchValue({  
-            seller: this.sellers[0]  
-          });  
-        }  
+        if (this.sellers && this.sellers.length > 0) {
+          this.filtersForm.patchValue({
+            seller: this.sellers[0],
+          });
+        }
       },
-      (error) => {console.error(error)}
-    )
+      (error) => {
+        console.error(error);
+      }
+    );
   }
 
   search() {
@@ -192,55 +203,74 @@ export class MainComponent implements OnInit {
     console.log('Фильтры:', this.filtersForm.value);
   }
 
-  openAddProductDialog(): void {  
-    const dialogRef = this.dialog.open(AddProductDialogComponent, {  
-      width: '60%',  
-      panelClass: 'custom-dialog-container',  
-      data: {  
-        ozonColumns: this.ozonColumns,  
-        wildberriesColumns: this.wildberriesColumns,  
-        seller: this.filtersForm.value.seller,  
-      },  
-    });  
-  
-    dialogRef.afterClosed().subscribe((result: any) => {  
-      if (result) {  
-        const { marketplace, seller, ...details } = result;  
-        const productPayload = { marketplace, seller, details };  
-  
-        this.productService.addProduct(productPayload).subscribe({  
-          next: (newProduct: any) => {  
-            console.log('Добавлен товар:', newProduct);  
-            this.loadProducts();  
-          },  
-          error: (err) => {  
-            console.error('Ошибка добавления товара', err);  
-          },  
-        });  
-      }  
-    });  
-  }  
+  openAddProductDialog(): void {
+    const dialogRef = this.dialog.open(AddProductDialogComponent, {
+      width: '60%',
+      panelClass: 'custom-dialog-container',
+      data: {
+        ozonColumns: this.ozonColumns,
+        wildberriesColumns: this.wildberriesColumns,
+        seller: this.filtersForm.value.seller,
+        product: this.selectedProduct,
+      },
+    });
 
-  openAddSellerDialog(): void {  
-    const dialogRef = this.dialog.open(AddSellerDialogComponent, {  
-      width: '40%',  
-      panelClass: 'custom-dialog-container',  
-      data: {}  
-    });  
-  
-    dialogRef.afterClosed().subscribe((result: any) => {  
-      if (result) {  
-        this.sellerService.addSeller({ name: result.sellerName }).subscribe({  
-          next: (newSeller: any) => {  
-            console.log('Продавец добавлен:', newSeller);  
+    dialogRef.afterClosed().subscribe((result: any) => {
+      this.selectedProduct = null;
+      if (result) {
+        const { marketplace, seller, ...details } = result;
+        const productPayload = { marketplace, seller, details };
+        console.log('productPayload', productPayload);
+
+        this.productService.addProduct(productPayload).subscribe({
+          next: (newProduct: any) => {
+            console.log('Добавлен товар:', newProduct);
+            this.loadProducts();
+          },
+          error: (err) => {
+            this.loadProducts();
+            console.error('Ошибка добавления товара', err);
+          },
+        });
+      } else {
+        this.loadProducts();
+      }
+    });
+  }
+
+  openAddSellerDialog(): void {
+    const dialogRef = this.dialog.open(AddSellerDialogComponent, {
+      width: '40%',
+      panelClass: 'custom-dialog-container',
+      data: {},
+    });
+
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result) {
+        this.sellerService.addSeller({ name: result.sellerName }).subscribe({
+          next: (newSeller: any) => {
+            console.log('Продавец добавлен:', newSeller);
             this.loadSellers();
-          },  
-          error: (err) => {  
-            console.error('Ошибка добавления продавца', err);  
-          },  
-        });  
-      }  
-    });  
-  }  
+          },
+          error: (err) => {
+            console.error('Ошибка добавления продавца', err);
+          },
+        });
+      }
+    });
+  }
 
+  deleteProduct() {
+    console.log(this.selectedProduct);
+    this.productService.deleteProduct(this.selectedProduct.id).subscribe({
+      next: (newProduct: any) => {
+        console.log('Удален товар:', newProduct);
+        this.loadProducts();
+      },
+      error: (err) => {
+        console.error('Ошибка удаления товара', err);
+      },
+    });
+    this.selectedProduct = null;
+  }
 }

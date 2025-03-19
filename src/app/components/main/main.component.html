@@ -21,25 +21,6 @@
     <div>Фильтры</div>
   </div>
   <form [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
-    <!-- <div class="row">
-      <div class="col-2 input-label">АРТИКУЛ ПРОДАВЦА</div>
-      <div class="col-10">
-        <input class="input-field" type="text" formControlName="itemName" />
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-2 input-label">МАРЖА</div>
-      <div class="col-10">
-        <input class="input-field" type="text" formControlName="quantity" />
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-2 input-label">ЦЕНА РЕАЛИЗАЦИИ</div>
-      <div class="col-10">
-        <input class="input-field" type="text" formControlName="property" />
-      </div>
-    </div> -->
-
     <!-- Фильтр по продавцу -->
     <div class="row">
       <div class="col-2 input-label">ПРОДАВЕЦ</div>
@@ -56,16 +37,15 @@
     </div>
 
     <div class="row">
-      <div class="col-2">
-      </div>
+      <div class="col-2"></div>
       <div class="col-10">
         <button
-        class="filter-btn"
-        style="background-color: white; color: black; border: 1px solid black"
-        (click)="openAddSellerDialog()"
-      >
-        Добавить продавца
-      </button>
+          class="filter-btn"
+          style="background-color: white; color: black; border: 1px solid black"
+          (click)="openAddSellerDialog()"
+        >
+          Добавить продавца
+        </button>
       </div>
     </div>
 
@@ -98,9 +78,15 @@
         </thead>
         <tbody>
           <ng-container *ngFor="let prod of products">
-            <tr *ngIf="prod.marketplace === 'OZON' && prod.seller === filtersForm.value.seller?.id">
+            <tr
+              *ngIf="
+                prod.marketplace === 'OZON' &&
+                prod.seller === filtersForm.value.seller?.id
+              "
+              (click)="selectProduct(prod)"
+              [class.selected]="selectedProduct?.id === prod.id"
+            >
               <td *ngFor="let col of ozonColumns">
-                <!-- Предполагается, что данные товара находятся в поле details -->
                 {{ prod.details[col.key] }}
               </td>
             </tr>
@@ -119,7 +105,14 @@
         </thead>
         <tbody>
           <ng-container *ngFor="let prod of products">
-            <tr *ngIf="prod.marketplace === 'Wildberries' && prod.seller === filtersForm.value.seller?.id">
+            <tr
+              *ngIf="
+                prod.marketplace === 'Wildberries' &&
+                prod.seller === filtersForm.value.seller?.id
+              "
+              (click)="selectProduct(prod)"
+              [class.selected]="selectedProduct?.id === prod.id"
+            >
               <td *ngFor="let col of wildberriesColumns">
                 {{ prod.details[col.key] }}
               </td>
@@ -138,6 +131,22 @@
     >
       Добавить товар
     </button>
-
+    <!-- Кнопка для изменения товара -->
+    <button
+      class="filter-btn"
+      style="margin-right: 16px"
+      [disabled]="!selectedProduct"
+      (click)="openAddProductDialog()"
+    >
+      Изменить товар
+    </button>
+    <button
+      class="filter-btn red"
+      style="margin-right: 16px"
+      [disabled]="!selectedProduct"
+      (click)="deleteProduct()"
+    >
+      Удалить товар
+    </button>
   </div>
 </section>

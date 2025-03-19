@@ -1,0 +1,11 @@
+<div class="drop-zone" [class.dragover]="isDragOver">  
+    <p>Перетащите Excel файл сюда</p>  
+    <p>или выберите файл</p>  
+    <input type="file" accept=".xlsx, .xls" (change)="onFileChange($event)" />  
+  </div>  
+  
+  <!-- Блок для отображения информации о загруженном файле -->  
+  <div *ngIf="loadedFile" class="loaded-file-info">  
+    <p>Загруженный файл: <strong>{{ loadedFile.name }}</strong></p>  
+    <button (click)="startProcess()">Начать обработку</button>
+  </div>  

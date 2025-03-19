@@ -188,3 +188,29 @@ header {
   .add-btns{
     margin-top: 16px;
   }
+
+  .red {
+    background-color: red;
+    color: white;
+  }
+
+  .my-table tr {  
+    transition: background-color 0.3s;  
+    cursor: pointer;  
+  }  
+  
+  .my-table tr:hover {  
+    background-color: #f1f1f1; /* Лёгкая подсветка при наведении */  
+  }  
+  
+  .my-table tr.selected {  
+    background-color: #cce5ff; /* Боле выраженная подсветка для выбранной строки */  
+  }  
+
+  .filter-btn:disabled {  
+    background-color: #d3d3d3 !important; /* светло-серый фон */  
+    color: #555 !important;              /* темно-серый текст */  
+    cursor: not-allowed;                 /* курсор "запрещено" */  
+    opacity: 0.6;                        /* полупрозрачность */  
+    border: 1px solid #aaa;              /* легкая окантовка */  
+  }  

@@ -12,6 +12,9 @@
       </div>  
     </div>  
 
+    <!-- Компонент DragAndDrop для загрузки Excel файла -->  
+    <app-drag-and-drop (fileLoaded)="onFileLoaded($event)"></app-drag-and-drop>  
+
     <!-- Блок для OZON -->  
     <div *ngIf="productForm.get('marketplace')?.value === 'OZON'">  
       <!-- Поля ручного ввода для OZON -->  
@@ -21,7 +24,6 @@
           <input matInput type="text" [formControlName]="field.key" class="input-field" />  
         </div>  
       </div>  
-
       <!-- Вычисляемые поля для OZON (отображаются как текст) -->  
       <div class="row" *ngFor="let computed of ozonComputedFields">  
         <div class="col-2 input-label">{{ computed.header }}</div>  
@@ -40,7 +42,6 @@
           <input matInput type="text" [formControlName]="field.key" class="input-field" />  
         </div>  
       </div>  
-
       <!-- Вычисляемые поля для Wildberries (отображаются как текст) -->  
       <div class="row" *ngFor="let computed of wildberriesComputedFields">  
         <div class="col-2 input-label">{{ computed.header }}</div>  
@@ -52,6 +53,6 @@
   </mat-dialog-content>  
   <mat-dialog-actions align="end">  
     <button mat-button type="button" (click)="onCancel()">Отмена</button>  
-    <button mat-button color="primary" type="submit">Добавить</button>  
+    <button mat-button color="primary" type="submit">Подтвердить</button>  
   </mat-dialog-actions>  
 </form>
