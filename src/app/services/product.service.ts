@@ -21,25 +21,14 @@ export class ProductService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Создание нового товара.
-   * @param product Объект товара, который содержит поля: marketplace и details.
-   */
   addProduct(product: Product): Observable<Product> {
     return this.http.post<Product>(`${this.productsUrl}/add/`, product);
   }
 
-  /**
-   * Получение списка товаров.
-   */
   getProducts(): Observable<Product[]> {
     return this.http.get<Product[]>(`${this.productsUrl}/all/`);
   }
 
-  /**
-   * Обновление существующего товара.
-   * @param product Объект товара с обновлёнными данными, обязательно с заполненным полем id.
-   */
   updateProduct(product: Product): Observable<Product> {
     if (!product.id) {
       throw new Error('ID продукта обязателен для обновления');
@@ -50,10 +39,6 @@ export class ProductService {
     );
   }
 
-  /**
-   * Удаление товара.
-   * @param productId Идентификатор товара для удаления.
-   */
   deleteProduct(productId: number): Observable<any> {
     return this.http.delete<any>(`${this.productsUrl}/delete/${productId}/`);
   }

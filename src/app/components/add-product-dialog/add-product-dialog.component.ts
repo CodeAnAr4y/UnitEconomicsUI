@@ -444,8 +444,8 @@ export class AddProductDialogComponent implements OnInit {
         productData[key] = this.productForm.getRawValue()[key];  
       });  
       console.log(productData);
-      this.data.product.details = productData;
       if (this.data.product){
+        this.data.product.details = productData;
         this.productService.updateProduct(this.data.product).subscribe({  
           next: (newProduct: any) => {  
             console.log('Добавлен товар:', newProduct);  

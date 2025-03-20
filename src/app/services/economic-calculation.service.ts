@@ -76,7 +76,6 @@ export class EconomicCalculationService {
     // 10. Упаковка, BYN = 1  
     const packagingByn = 1;  
     // 11. Для расчёта revenueRosRub сначала вычислим:  
-    // revenueRosRub = salePriceRub - logisticsToCustomerRub - wildberriesCommissionRub - acquiring2PercentRub  
     const revenueRosRub = salePriceRub - logisticsToCustomerRub - wildberriesCommissionRub - acquiring2PercentRub;  
     // 12. Налог 20%, рос руб = (revenueRosRub - packagingByn - purchasePriceUnitRub) * 0.2  
     const tax20RosRub = (revenueRosRub - packagingByn - purchasePriceUnitRub) * 0.2;  
@@ -98,8 +97,6 @@ export class EconomicCalculationService {
     // 17. Хранение за 30 дней = storage * 30  
     const storage30Days = storage * 30;  
     // 18. Прибыль RUB:  
-    // profitRub = (revenueRosRub - purchasePriceUnitRub - (packagingByn / course)) - tax20RosRub - (management7PercentByn / course) - deliveryToWBRub - storage30Days - fbsReception  
-    // fbsReception для Wildberries = 0  
     const profitRub = (revenueRosRub - purchasePriceUnitRub - (packagingByn / course)) - tax20RosRub - (management7PercentByn / course) - deliveryToWBRub - storage30Days - 0;  
     // 19. Прибыль BYN = profitRub * course  
     const profitByn = profitRub * course;  

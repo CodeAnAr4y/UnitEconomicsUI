@@ -1,6 +1,12 @@
 .bg-img{
     height: 100vh;
+    display: flex;
+    align-items: center;
+    // background-color: black;
+    background: linear-gradient(to bottom right, #000000, #4b0082, #8a2be2);
+    margin-right: 100px;
 }
+.logo-img{}
 
 .input-field{
     border: none;
