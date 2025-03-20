@@ -144,7 +144,7 @@ export class AddProductDialogComponent implements OnInit {
 
     // Добавляем контролы для ручного ввода OZON  
     this.ozonManualFields.forEach(field => {  
-      this.productForm.addControl(field.key, this.fb.control('', Validators.required));  
+      this.productForm.addControl(field.key, this.fb.control(''));  
     });  
     // Добавляем контролы для вычисляемых полей OZON (readOnly)  
     this.ozonComputedFields.forEach(field => {  
@@ -204,7 +204,7 @@ export class AddProductDialogComponent implements OnInit {
     this.ozonManualFields.forEach(field => {  
       const control = this.productForm.get(field.key);  
       if (marketplace === 'OZON') {  
-        control?.setValidators(Validators.required);  
+        // control?.setValidators(Validators.required);  
       } else {  
         control?.clearValidators();  
       }  
@@ -233,6 +233,7 @@ export class AddProductDialogComponent implements OnInit {
     }  
     const calc = this.economicCalculationService.calculateOzonFields(salePrice, volume, ozonCommissionPercent, costRub);  
     this.productForm.patchValue({  
+      costRub: costRub.toFixed(2),
       ozonCommissionRub: calc.ozonCommissionRub.toFixed(2),  
       ozonLogisticsRub: calc.ozonLogisticsRub.toFixed(2),  
       fbsReception: calc.fbsReception,  

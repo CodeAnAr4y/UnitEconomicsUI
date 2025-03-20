@@ -218,8 +218,8 @@ export class ReportService {
       const marketplace: string = product.marketplace;  
       let profit: number | null = null;  
       if (marketplace === 'Wildberries') {  
-        if (product.details.profitByn) {  
-          profit = parseFloat(product.details.profitByn);  
+        if (product.details.profitRub) {  
+          profit = parseFloat(product.details.profitRub);  
         }  
       } else if (marketplace === 'OZON') {  
         if (product.details.netProfit) {  

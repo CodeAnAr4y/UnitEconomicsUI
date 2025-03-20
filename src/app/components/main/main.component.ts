@@ -292,5 +292,12 @@ export class MainComponent implements OnInit {
   createReport(){
     this.reportService.createReport(this.products);
   }
+
+  displayValue(value: any) {  
+    if (typeof value === "number" && !Number.isInteger(value)) {  
+      return value.toFixed(2);  
+    }  
+    return value;  
+  } 
 }
 

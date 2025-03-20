@@ -16,7 +16,7 @@ export class EconomicCalculationService {
     // 3. Приемка ФБС = 30  
     const fbsReception = 30;  
     // 4. Упаковка = 27.18  
-    const packaging = 0.01;  
+    const packaging = 27.32;  
     // 5. Эквайринг 1,5%  
     const acquiringPercent = salePrice * 0.015;  
     // 6. Последняя миля  
@@ -38,7 +38,10 @@ export class EconomicCalculationService {
     // 13. Налог  
     const tax = salePrice / 6;  
     // 14. Чистая прибыль  
-    const netProfit = orderSumRevenue - expenses - tax;  
+    let netProfit = orderSumRevenue - expenses - tax;  
+    if (netProfit < 0){
+      netProfit = orderSumRevenue - expenses;
+    }
     // 15. Маржа, %  
     const marginPercent = costRub !== 0 ? (netProfit / costRub) * 100 : 0;  
 

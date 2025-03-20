@@ -96,7 +96,7 @@
               [class.selected]="selectedProduct?.id === prod.id"
             >
               <td *ngFor="let col of ozonColumns">
-                {{ prod.details[col.key] }}
+                {{ displayValue(prod.details[col.key]) }}
               </td>
             </tr>
           </ng-container>
