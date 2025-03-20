@@ -360,6 +360,7 @@ export class AddProductDialogComponent implements OnInit {
           };  
         }  
       } else if (marketplace === 'Wildberries') {  
+        console.log("Wildberries process", details);
         // Извлекаем необходимые значения для расчёта  
         const priceRubInput = parseFloat(details['priceRub']);  
         const ourDiscount = parseFloat(details['ourDiscount']);  
@@ -409,6 +410,7 @@ export class AddProductDialogComponent implements OnInit {
             profitByn: calc.profitByn.toFixed(2)  
           };  
         }  
+        console.log("Обновленные детали", details);
       }  
   
       // Формируем payload для отправки товара  
@@ -418,8 +420,6 @@ export class AddProductDialogComponent implements OnInit {
         details: details,  
       };  
   
-      console.log(productPayload);
-
       // Отправка товара на сервер  
       this.productService.addProduct(productPayload).subscribe({  
         next: (newProduct: any) => {  
