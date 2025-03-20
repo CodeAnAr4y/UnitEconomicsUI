@@ -1,7 +1,7 @@
 <div class="row">
     <div class="col-5 p-0 m-0">
       <div class="bg-img">
-        <img class="logo-img" src="logo-sm-removebg-preview.png" alt="" />
+        <img src="logo-sm-removebg-preview.png" alt="" />
       </div>
     </div>
   
@@ -11,36 +11,52 @@
         <p class="text-muted">Пожалуйста, заполните все поля</p>
       </div>
   
-      <form [formGroup]="registrationForm" (ngSubmit)="registrate()">
-        <div class="row">
-          <div class="col-3 input-label">ФИО</div>
-          <div class="col-7">
-            <input class="input-field" type="text" formControlName="username" />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3 input-label">ЭЛЕКТРОННАЯ ПОЧТА</div>
-          <div class="col-7">
-            <input class="input-field" type="text" formControlName="email" />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3 input-label">ПАРОЛЬ</div>
-          <div class="col-7">
-            <input
-              class="input-field"
-              type="password"
-              formControlName="password"
-            />
-          </div>
-        </div>
-  
-        <div class="row">
-          <div class="col-10 d-flex justify-content-end align-items-center my-5">
-            <div class="me-5 text-secondary test" (click)="signUp = true">Войти</div>
-            <button class="submit-btn">Подтвердить</button>
-          </div>
-        </div>
+      <form [formGroup]="registrationForm" (ngSubmit)="registrate()">  
+        <div class="row">  
+          <div class="col-3 input-label">ФИО</div>  
+          <div class="col-7">  
+            <input class="input-field" type="text" formControlName="username" />  
+            <!-- Вывод ошибки для username -->  
+            <div class="text-danger" *ngIf="registrationErrors.username">  
+              <div *ngFor="let error of registrationErrors.username">  
+                {{ error }}  
+              </div>  
+            </div>  
+          </div>  
+        </div>  
+        
+        <div class="row">  
+          <div class="col-3 input-label">ЭЛЕКТРОННАЯ ПОЧТА</div>  
+          <div class="col-7">  
+            <input class="input-field" type="text" formControlName="email" />  
+            <!-- Вывод ошибки для email -->  
+            <div class="text-danger" *ngIf="registrationErrors.email">  
+              <div *ngFor="let error of registrationErrors.email">  
+                {{ error }}  
+              </div>  
+            </div>  
+          </div>  
+        </div>  
+        
+        <div class="row">  
+          <div class="col-3 input-label">ПАРОЛЬ</div>  
+          <div class="col-7">  
+            <input class="input-field" type="password" formControlName="password" />  
+            <!-- Вывод ошибки для password -->  
+            <div class="text-danger" *ngIf="registrationErrors.password">  
+              <div *ngFor="let error of registrationErrors.password">  
+                {{ error }}  
+              </div>  
+            </div>  
+          </div>  
+        </div>  
+        
+        <div class="row">  
+          <div class="col-10 d-flex justify-content-end align-items-center my-5">  
+            <div class="me-5 text-secondary test" (click)="signUp = true">Войти</div>  
+            <button class="submit-btn">Подтвердить</button>  
+          </div>  
+        </div>  
       </form>
     </div>
   
@@ -50,32 +66,48 @@
         <p class="text-muted">Пожалуйста, заполните все поля</p>
       </div>
   
-      <form [formGroup]="loginForm" (ngSubmit)="login()">
-        <div class="row">
-          <div class="col-3 input-label">ИМЯ</div>
-          <div class="col-7">
-            <input class="input-field" type="text" formControlName="username" />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3 input-label">ПАРОЛЬ</div>
-          <div class="col-7">
-            <input
-              class="input-field"
-              type="password"
-              formControlName="password"
-            />
-          </div>
-        </div>
-  
-        <div class="row">
-          <div class="col-10 d-flex justify-content-end align-items-center my-5">
-            <div class="me-5 text-secondary test" (click)="signUp = false">
-              Регистрация
-            </div>
-            <button class="submit-btn">Войти</button>
-          </div>
-        </div>
+      <form [formGroup]="loginForm" (ngSubmit)="login()">  
+        <div class="row">  
+          <div class="col-3 input-label">ИМЯ</div>  
+          <div class="col-7">  
+            <input class="input-field" type="text" formControlName="username" />  
+            <!-- Вывод ошибки для username -->  
+            <div class="text-danger" *ngIf="loginErrors.username">  
+              <div *ngFor="let error of loginErrors.username">  
+                {{ error }}  
+              </div>  
+            </div>  
+          </div>  
+        </div>  
+        <div class="row">  
+          <div class="col-3 input-label">ПАРОЛЬ</div>  
+          <div class="col-7">  
+            <input class="input-field" type="password" formControlName="password" />  
+            <!-- Вывод ошибки для password -->  
+            <div class="text-danger" *ngIf="loginErrors.password">  
+              <div *ngFor="let error of loginErrors.password">  
+                {{ error }}  
+              </div>  
+            </div>  
+          </div>  
+        </div>  
+        
+        <!-- Вывод общего сообщения об ошибке, если есть -->  
+        <div *ngIf="loginErrors.general" class="text-danger">  
+          {{ loginErrors.general }}  
+        </div>  
+        <div *ngIf="loginErrors.non_field_errors" class="text-danger">  
+          {{ loginErrors.non_field_errors }}  
+        </div>  
+        
+        <div class="row">  
+          <div class="col-10 d-flex justify-content-end align-items-center my-5">  
+            <div class="me-5 text-secondary test" (click)="signUp = false">  
+              Регистрация  
+            </div>  
+            <button class="submit-btn">Войти</button>  
+          </div>  
+        </div>  
       </form>
     </div>
   </div>
