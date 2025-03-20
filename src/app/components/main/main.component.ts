@@ -20,6 +20,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { Seller, SellerService } from '../../services/seller.service';
 import { AddSellerDialogComponent } from '../add-seller-dialog/add-seller-dialog.component';
+import { ReportService } from '../../services/report.service';
+
 
 export const ozonColumns = [
   { header: 'Артикул продавца', key: 'sellerArticle' },
@@ -109,6 +111,7 @@ export class MainComponent implements OnInit {
   products: Product[] = [];
   selectedProduct: any = null;
   sellers: Seller[] = [];
+  accountDropdownOpen = false; 
 
   ozonColumns = ozonColumns;
 
@@ -130,8 +133,13 @@ export class MainComponent implements OnInit {
     public dialog: MatDialog,
     private loginService: LoginService,
     private productService: ProductService,
-    private sellerService: SellerService
+    private sellerService: SellerService,
+    private reportService: ReportService,
   ) {}
+
+  toggleDropdown() {  
+    this.accountDropdownOpen = !this.accountDropdownOpen;  
+  }  
 
   selectProduct(prod: any): void {
     if (prod === this.selectedProduct) {
@@ -171,6 +179,7 @@ export class MainComponent implements OnInit {
   loadProducts(): void {
     this.productService.getProducts().subscribe({
       next: (products) => {
+        console.log(products);
         this.products = products;
       },
       error: (err) => {
@@ -273,4 +282,15 @@ export class MainComponent implements OnInit {
     });
     this.selectedProduct = null;
   }
+
+  logoutUser(){
+    this.loginService.logout().subscribe((res)=> {
+      this.router.navigate(['login']);
+    })
+  }
+
+  createReport(){
+    this.reportService.createReport(this.products);
+  }
 }
+

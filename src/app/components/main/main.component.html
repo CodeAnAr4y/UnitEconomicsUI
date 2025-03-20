@@ -2,24 +2,33 @@
   <button class="btn" (click)="router.navigate([''])">
     <img class="logo" src="logo-sm.jpg" alt="БО" />
   </button>
-  <div class="d-flex search">
-    <div class="search-input">
-      <img src="search-icon.svg" alt="" />
-      <input [(ngModel)]="searchValue" type="text" />
-    </div>
-    <button (click)="search()" class="search-btn">Найти</button>
+  <div style="display: flex; justify-content: center; width: 60vw;">
+  <div class="filters-title">
+    <div>Фильтры</div>
   </div>
-  <button (click)="router.navigate(['account'])" class="btn user-btn">
-    <div class="user-icon">{{ user.username[0] }}</div>
-    <div>{{ user.username }}</div>
-  </button>
+</div>
+  <!-- Dropdown меню -->
+  <div class="dropdown">
+    <button
+      class="btn user-btn"
+      type="button"
+      id="dropdownMenuButton"
+      data-toggle="dropdown"
+      aria-haspopup="true"
+      aria-expanded="false"
+    >
+      <div class="user-icon">{{ user.username[0] }}</div>
+      <div>{{ user.username }}</div>
+    </button>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+      <button (click)="logoutUser()" class="dropdown-item">Выйти</button>
+    </div>
+  </div>
 </header>
 
 <section class="container mb-5">
   <!-- Форма фильтров -->
-  <div class="filters-title">
-    <div>Фильтры</div>
-  </div>
+
   <form [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
     <!-- Фильтр по продавцу -->
     <div class="row">
@@ -124,29 +133,39 @@
   </div>
 
   <div class="add-btns">
-    <button
+    <div>
+      <button
+        class="filter-btn"
+        style="margin-right: 16px"
+        (click)="openAddProductDialog()"
+      >
+        Добавить товар
+      </button>
+      <button
+        class="filter-btn"
+        style="margin-right: 16px"
+        [disabled]="!selectedProduct"
+        (click)="openAddProductDialog()"
+      >
+        Изменить товар
+      </button>
+      <button
+        class="filter-btn red"
+        style="margin-right: 16px"
+        [disabled]="!selectedProduct"
+        (click)="deleteProduct()"
+      >
+        Удалить товар
+      </button>
+    </div>
+    <div>
+      <button
       class="filter-btn"
-      style="margin-right: 16px"
-      (click)="openAddProductDialog()"
+      [disabled]="products.length === 0"
+      (click)="createReport()"
     >
-      Добавить товар
+      Создать отчет
     </button>
-    <!-- Кнопка для изменения товара -->
-    <button
-      class="filter-btn"
-      style="margin-right: 16px"
-      [disabled]="!selectedProduct"
-      (click)="openAddProductDialog()"
-    >
-      Изменить товар
-    </button>
-    <button
-      class="filter-btn red"
-      style="margin-right: 16px"
-      [disabled]="!selectedProduct"
-      (click)="deleteProduct()"
-    >
-      Удалить товар
-    </button>
+    </div>
   </div>
 </section>
